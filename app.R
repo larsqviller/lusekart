@@ -121,6 +121,7 @@ aktive         <- cbind(aktive0, XNextWeek1 = aktive0[,ncol(aktive0)-1], XNextWe
 
 #lokreg_redus <- read.table('./lokreg_redus.csv', sep = ';', dec =",")
 
+
 press201621 <- raster('./rasters/pressX201621.tif')
 press201622 <- raster('./rasters/pressX201622.tif')
 press201623 <- raster('./rasters/pressX201623.tif')
@@ -163,19 +164,28 @@ press201707 <- raster('./rasters/pressX201707.tif')
 press201708 <- raster('./rasters/pressX201708.tif')
 press201709 <- raster('./rasters/pressX201709.tif')
 press201710 <- raster('./rasters/pressX201710.tif')
+press201711 <- raster('./rasters/pressX201711.tif')
+press201712 <- raster('./rasters/pressX201712.tif')
+press201713 <- raster('./rasters/pressX201713.tif')
+press201716 <- raster('./rasters/pressX201716.tif')
 pressNextWeek1 <- raster('./rasters/pressXNextWeek1.tif')
 pressNextWeek2 <- raster('./rasters/pressXNextWeek2.tif')
 #pressNeste3 <- raster('./rasters/pressNeste3.tif')
 
+
 extent(press201705) <- extent(press201704)
 
-pressene <- stack(press201621, press201622, press201623, press201624, press201625, press201626, press201627, press201628, press201629, press201630, press201631, press201632, press201633, press201634, press201635, press201636, press201637, press201638, press201639, press201640, press201641, press201642, press201643,press201644, press201645,press201646,press201647,press201648,press201649,press201650,press201651,press201652,press201701, press201702, press201703, press201704, press201705, press201706,press201707,press201708,press201709,press201710,
+pressene <- stack(press201621, press201622, press201623, press201624, press201625, press201626, press201627, press201628, press201629, press201630, press201631, press201632, press201633, press201634, press201635, press201636, press201637, press201638, press201639, press201640, press201641, press201642, press201643,press201644, press201645,press201646,press201647,press201648,press201649,press201650,press201651,press201652,press201701, press201702, press201703, press201704, press201705, press201706,press201707,press201708,press201709,press201710,press201711,press201712,press201713,press201716,
                   pressNextWeek1, pressNextWeek2)
 
 #names(pressene)[9] <- 'pressXNextWeek1'
 #names(pressene)[10] <- 'pressXNextWeek2'
 names(pressene)
-fargegrunnlag <- raster('./fargegrunnlag100.tif')
+r1 <- raster(nrows=10, ncols=20)
+r1 <- setValues(r1, c(0:199)/10)
+fargegrunnlag <- r1
+range(r1)
+#fargegrunnlag <- raster('./fargegrunnlag100.tif')
 
 
 
@@ -196,7 +206,7 @@ Totalt <- read.table('./MobileTotaltFra2012.txt', header=T, sep = '\t', dec = ',
 
 
 #pal <- colorQuantile(c("#ffffff","#ffffcc","#ffeda0","#fed976","#feb24c","#fd8d3c","#fc4e2a","#e31a1c", "#bd0026", "#800026"), probs = seq(0,1,0.1), values(fargegrunnlag), na.color = "transparent")
-pal <- colorQuantile(c("#ffffff","#ffffff","#ffffcc","#ffffcc","#fed976","#fed976","#feb24c","#e31a1c", "#bd0026", "#800026"), probs = seq(0,1,0.1), values(fargegrunnlag), na.color = "transparent")
+pal <- colorBin(c("#ffffff","#ffffff","#ffffcc","#ffffcc","#fed976","#fed976","#feb24c","#e31a1c", "#bd0026", "#800026"), values(fargegrunnlag), na.color = "transparent", bins=10)
 
 
 ui <- fluidPage(
@@ -236,7 +246,7 @@ ui <- fluidPage(
                                                              "Vis bare smittekart" = "lokmark",
                                                              "Vis alle aktive lokaliteter i Norge" = "begr")),
                                         selectInput('kartvalg', "Velg uke:",
-                                                    c('Uke 201710' = 'pressX201710', 
+                                                    c('Uke 201716' = 'pressX201716', 
                                                       'Uke 201621' = 'pressX201621',
                                                       'Uke 201622' = 'pressX201622',
                                                       'Uke 201623' = 'pressX201623', 
@@ -278,9 +288,13 @@ ui <- fluidPage(
                                                       'Uke 201707' = 'pressX201707',
                                                       'Uke 201708' = 'pressX201708',
                                                       'Uke 201709' = 'pressX201709', 
+                                                      'Uke 2017010' = 'pressX2017010', 
+                                                      'Uke 2017011' = 'pressX2017011', 
+                                                      'Uke 2017012' = 'pressX2017012', 
+                                                      'Uke 2017013' = 'pressX2017013', 
                                                       'En uke fram i tid' = 'pressXNextWeek1',
                                                       'To uker fram i tid' = 'pressXNextWeek2'
-                                                      ))
+                                                    ))
                           ) 
                       )
              ),
@@ -289,17 +303,17 @@ ui <- fluidPage(
                       radioButtons("listevalg", "Velg liste:",
                                    c("Valgte lokaliteter" = "valgt",
                                      "Alle aktive lokaliteter" = "hele"
-                                     )),
+                                   )),
                       tableOutput("mytable")
              ),
              tabPanel("Dokumentasjon",
-                       includeMarkdown("Dokumentasjon.Rmd")
+                      includeMarkdown("Dokumentasjon.Rmd")
                       
              ),
              tabPanel("Kildekode",
                       includeMarkdown("script.Rmd")
              )
-              
+             
   )
 )
 
@@ -339,13 +353,13 @@ server <- function(input, output, session) {
     }
   })
   
-    output$mytable <- renderTable({if(input$listevalg == "valgt") 
+  output$mytable <- renderTable({if(input$listevalg == "valgt") 
     velgTilListe(dataliste(input$kartvalg),velgelok(input$km_om, input$lok, input$kartvalg)[[1]])
     else
       dataliste(input$kartvalg)[order(dataliste(input$kartvalg)$LOKALITETSNUMMER),]
     
   })
-
+  
   
 }
 
