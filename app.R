@@ -8,7 +8,6 @@
 #
 
 
-
 #rsconnect::setAccountInfo(name='larsqviller',
 #token='D1145CB7E92797F291018CEDC5CBFDD3',
 #secret='H7d8s3dcSLDq649O0Znp2ZGAlaiDEqi4ykHVdjuV')
@@ -101,13 +100,50 @@ dataliste <- function(kartvalg){
   return(lokreg_redus)
 }
 
-
+mappe <- "E:/Dropbox/Vetinst_min_egen/shiny/smittepresskart/rasters/"
+#mappe <- './rasters/'
 lesekart <- function(mappe){
-  dir(mappe)
+  filnavn <- dir(mappe)
+  filnavn_uten_tiff <- substring(filnavn, 1, nchar(filnavn)-4)
+  filer <- paste0(substring(filnavn_uten_tiff, 1,5), substring(filnavn_uten_tiff, 7,nchar(filnavn_uten_tiff)))
+  pressListe <- lapply(filnavn, function(x) raster(paste0(mappe,x)))
+  Mode <- function(x) {
+    ux <- unique(x)
+    ux[which.max(tabulate(match(x, ux)))]
+  }
+  unifyExtent <- function(x) {# x = pressliste
+    extents <- lapply(x, extent)
+    mode1   <- Mode(sapply(extents, function(x) x[1]))
+    mode2   <- Mode(sapply(extents, function(x) x[2]))
+    mode3   <- Mode(sapply(extents, function(x) x[3]))
+    mode4   <- Mode(sapply(extents, function(x) x[4]))
+    avvik   <- which(sapply(extents, function(x) x[1]) != mode1 | sapply(extents, function(x) x[2]) != mode2 |sapply(extents, function(x) x[3]) != mode3 |sapply(extents, function(x) x[3]) != mode3)
+    avvik
+    sekvens   <- c(1:length(x))
+    utenAvvik <- sekvens[-avvik][1]
+    if(length(avvik)>0) for(i in 1:length(avvik)) extent(x[[avvik[i]]]) <- extent(x[[utenAvvik]])
+    return(x)
+  }
+  pressListe <- unifyExtent(pressListe)
+  #names(pressListe) <- filer
+  pressStack <- stack(pressListe)
+  return(pressStack)
 }
 
-# Laster data -------------------------------------------------------------
+inputvalg <- function(pressx){
+  inputkart <- paste0(sapply(names(pressx), function(x) paste0("'Uke ", substring(x, 7, 12),"' = '", x, "'")))
+  lengde    <- length(inputkart)
+  inputkart[c(lengde-1, lengde)] <- c("'En uke fram i tid' = 'pressXNextWeek1'","'To uker fram i tid' = 'pressXNextWeek2'")
+  inputkart <- inputkart[c((lengde-2),1:(lengde-3), (lengde-1), lengde)]
+  inputkart <- paste(inputkart, collapse = ",\n")
+  inputkart <- paste0("c(",inputkart,")")
+  return(inputkart)
+}
 
+
+# Laster data -------------------------------------------------------------
+#Laster iinn rasterkartene
+pressene <- lesekart(mappe)
 ## Laster Lokreg-shape
 lok            <- readOGR('./lokreg_geo.shp', layer = "lokreg_geo")
 aktive_alle    <- read.table('./Aktiv.txt', header=T, sep = '\t', dec = ',')
@@ -120,63 +156,6 @@ aktive         <- cbind(aktive0, XNextWeek1 = aktive0[,ncol(aktive0)-1], XNextWe
 #aktiv.lok      <-  lok[lok$LOK_NR %in% aktiv_now,]
 
 #lokreg_redus <- read.table('./lokreg_redus.csv', sep = ';', dec =",")
-
-
-press201621 <- raster('./rasters/pressX201621.tif')
-press201622 <- raster('./rasters/pressX201622.tif')
-press201623 <- raster('./rasters/pressX201623.tif')
-press201624 <- raster('./rasters/pressX201624.tif')
-press201625 <- raster('./rasters/pressX201625.tif')
-press201626 <- raster('./rasters/pressX201626.tif')
-press201627 <- raster('./rasters/pressX201627.tif')
-press201628 <- raster('./rasters/pressX201628.tif')
-press201629 <- raster('./rasters/pressX201629.tif')
-press201630 <- raster('./rasters/pressX201630.tif')
-press201631 <- raster('./rasters/pressX201631.tif')
-press201632 <- raster('./rasters/pressX201632.tif')
-press201633 <- raster('./rasters/pressX201633.tif')
-press201634 <- raster('./rasters/pressX201634.tif')
-press201635 <- raster('./rasters/pressX201635.tif')
-press201636 <- raster('./rasters/pressX201636.tif')
-press201637 <- raster('./rasters/pressX201637.tif')
-press201638 <- raster('./rasters/pressX201638.tif')
-press201639 <- raster('./rasters/pressX201639.tif')
-press201640 <- raster('./rasters/pressX201640.tif')
-press201641 <- raster('./rasters/pressX201641.tif')
-press201642 <- raster('./rasters/pressX201642.tif')
-press201643 <- raster('./rasters/pressX201643.tif')
-press201644 <- raster('./rasters/pressX201644.tif')
-press201645 <- raster('./rasters/pressX201645.tif')
-press201646 <- raster('./rasters/pressX201646.tif')
-press201647 <- raster('./rasters/pressX201647.tif')
-press201648 <- raster('./rasters/pressX201648.tif')
-press201649 <- raster('./rasters/pressX201649.tif')
-press201650 <- raster('./rasters/pressX201650.tif')
-press201651 <- raster('./rasters/pressX201651.tif')
-press201652 <- raster('./rasters/pressX201652.tif')
-press201701 <- raster('./rasters/pressX201701.tif')
-press201702 <- raster('./rasters/pressX201702.tif')
-press201703 <- raster('./rasters/pressX201703.tif')
-press201704 <- raster('./rasters/pressX201704.tif')
-press201705 <- raster('./rasters/pressX201705.tif')
-press201706 <- raster('./rasters/pressX201706.tif')
-press201707 <- raster('./rasters/pressX201707.tif')
-press201708 <- raster('./rasters/pressX201708.tif')
-press201709 <- raster('./rasters/pressX201709.tif')
-press201710 <- raster('./rasters/pressX201710.tif')
-press201711 <- raster('./rasters/pressX201711.tif')
-press201712 <- raster('./rasters/pressX201712.tif')
-press201713 <- raster('./rasters/pressX201713.tif')
-press201716 <- raster('./rasters/pressX201716.tif')
-pressNextWeek1 <- raster('./rasters/pressXNextWeek1.tif')
-pressNextWeek2 <- raster('./rasters/pressXNextWeek2.tif')
-#pressNeste3 <- raster('./rasters/pressNeste3.tif')
-
-
-extent(press201705) <- extent(press201704)
-
-pressene <- stack(press201621, press201622, press201623, press201624, press201625, press201626, press201627, press201628, press201629, press201630, press201631, press201632, press201633, press201634, press201635, press201636, press201637, press201638, press201639, press201640, press201641, press201642, press201643,press201644, press201645,press201646,press201647,press201648,press201649,press201650,press201651,press201652,press201701, press201702, press201703, press201704, press201705, press201706,press201707,press201708,press201709,press201710,press201711,press201712,press201713,press201716,
-                  pressNextWeek1, pressNextWeek2)
 
 #names(pressene)[9] <- 'pressXNextWeek1'
 #names(pressene)[10] <- 'pressXNextWeek2'
@@ -245,56 +224,9 @@ ui <- fluidPage(
                                                            c("Vis smittekart over hele Norge" = "smi",
                                                              "Vis bare smittekart" = "lokmark",
                                                              "Vis alle aktive lokaliteter i Norge" = "begr")),
-                                        selectInput('kartvalg', "Velg uke:",
-                                                    c('Uke 201716' = 'pressX201716', 
-                                                      'Uke 201621' = 'pressX201621',
-                                                      'Uke 201622' = 'pressX201622',
-                                                      'Uke 201623' = 'pressX201623', 
-                                                      'Uke 201624' = 'pressX201624',
-                                                      'Uke 201625' = 'pressX201625',
-                                                      'Uke 201626' = 'pressX201626',
-                                                      'Uke 201627' = 'pressX201627',
-                                                      'Uke 201628' = 'pressX201628',
-                                                      'Uke 201629' = 'pressX201629',
-                                                      'Uke 201630' = 'pressX201630',
-                                                      'Uke 201631' = 'pressX201631',
-                                                      'Uke 201632' = 'pressX201632',
-                                                      'Uke 201633' = 'pressX201633',
-                                                      'Uke 201634' = 'pressX201634',
-                                                      'Uke 201635' = 'pressX201635',
-                                                      'Uke 201636' = 'pressX201636',
-                                                      'Uke 201637' = 'pressX201637',
-                                                      'Uke 201638' = 'pressX201638',
-                                                      'Uke 201639' = 'pressX201639',
-                                                      'Uke 201640' = 'pressX201640',
-                                                      'Uke 201641' = 'pressX201641',
-                                                      'Uke 201642' = 'pressX201642',
-                                                      'Uke 201643' = 'pressX201643', 
-                                                      'Uke 201644' = 'pressX201644', 
-                                                      'Uke 201645' = 'pressX201645', 
-                                                      'Uke 201646' = 'pressX201646', 
-                                                      'Uke 201647' = 'pressX201647', 
-                                                      'Uke 201648' = 'pressX201648', 
-                                                      'Uke 201649' = 'pressX201649', 
-                                                      'Uke 201650' = 'pressX201650', 
-                                                      'Uke 201651' = 'pressX201651', 
-                                                      'Uke 201652' = 'pressX201652', 
-                                                      'Uke 201701' = 'pressX201701',
-                                                      'Uke 201702' = 'pressX201702',
-                                                      'Uke 201703' = 'pressX201703',
-                                                      'Uke 201704' = 'pressX201704',
-                                                      'Uke 201705' = 'pressX201705',
-                                                      'Uke 201706' = 'pressX201706',
-                                                      'Uke 201707' = 'pressX201707',
-                                                      'Uke 201708' = 'pressX201708',
-                                                      'Uke 201709' = 'pressX201709', 
-                                                      'Uke 2017010' = 'pressX2017010', 
-                                                      'Uke 2017011' = 'pressX2017011', 
-                                                      'Uke 2017012' = 'pressX2017012', 
-                                                      'Uke 2017013' = 'pressX2017013', 
-                                                      'En uke fram i tid' = 'pressXNextWeek1',
-                                                      'To uker fram i tid' = 'pressXNextWeek2'
-                                                    ))
+                                        selectInput('kartvalg', 'Velg uke:',
+                                                    eval(parse(text=inputvalg(pressene))))
+                                        
                           ) 
                       )
              ),
